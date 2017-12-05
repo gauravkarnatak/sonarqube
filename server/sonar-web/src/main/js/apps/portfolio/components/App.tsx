@@ -26,12 +26,12 @@ import ReliabilityBox from './ReliabilityBox';
 import SecurityBox from './SecurityBox';
 import MaintainabilityBox from './MaintainabilityBox';
 import Activity from './Activity';
+import { SubComponent } from '../types';
+import { PORTFOLIO_METRICS, SUB_COMPONENTS_METRICS, convertMeasures } from '../utils';
 import { getMeasures } from '../../../api/measures';
 import { getChildren } from '../../../api/components';
-import { PORTFOLIO_METRICS, SUB_COMPONENTS_METRICS, convertMeasures } from '../utils';
-import { SubComponent } from '../types';
-import '../styles.css';
 import { translate } from '../../../helpers/l10n';
+import '../styles.css';
 
 interface Props {
   component: { key: string; name: string };
@@ -75,7 +75,7 @@ export default class App extends React.PureComponent<Props, State> {
     this.setState({ loading: true });
     Promise.all([
       getMeasures(this.props.component.key, PORTFOLIO_METRICS),
-      getChildren(this.props.component.key, SUB_COMPONENTS_METRICS, { ps: 20 })
+      getChildren(this.props.component.key, SUB_COMPONENTS_METRICS, { ps: 20, s: 'qualifier' })
     ]).then(
       ([measures, subComponents]) => {
         if (this.mounted) {
@@ -152,13 +152,13 @@ export default class App extends React.PureComponent<Props, State> {
         </div>
 
         {subComponents != undefined &&
-        totalSubComponents != undefined && (
-          <WorstProjects
-            component={component.key}
-            subComponents={subComponents}
-            total={totalSubComponents}
-          />
-        )}
+          totalSubComponents != undefined && (
+            <WorstProjects
+              component={component.key}
+              subComponents={subComponents}
+              total={totalSubComponents}
+            />
+          )}
       </div>
     );
   }
@@ -178,7 +178,7 @@ export default class App extends React.PureComponent<Props, State> {
 
           <aside className="page-sidebar-fixed">
             {!this.isEmpty() &&
-            !this.isNotComputed() && <Summary component={component} measures={measures!} />}
+              !this.isNotComputed() && <Summary component={component} measures={measures!} />}
             <Activity component={component.key} />
             <Report component={component} />
           </aside>
