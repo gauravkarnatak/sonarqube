@@ -61,7 +61,7 @@ public class ServerUserSession extends AbstractUserSession {
   private Map<String, Set<String>> permissionsByProjectUuid;
 
   ServerUserSession(DbClient dbClient, OrganizationFlags organizationFlags,
-    DefaultOrganizationProvider defaultOrganizationProvider, @Nullable UserDto userDto) {
+                    DefaultOrganizationProvider defaultOrganizationProvider, @Nullable UserDto userDto) {
     this.dbClient = dbClient;
     this.organizationFlags = organizationFlags;
     this.defaultOrganizationProvider = defaultOrganizationProvider;
@@ -188,12 +188,12 @@ public class ServerUserSession extends AbstractUserSession {
   protected List<ComponentDto> doKeepAuthorizedComponents(String permission, Collection<ComponentDto> components) {
     try (DbSession dbSession = dbClient.openSession(false)) {
       Set<String> projectUuids = components.stream()
-        .map(ComponentDto::projectUuid)
+        .map(c -> defaultIfEmpty(c.getMainBranchProjectUuid(), c.projectUuid()))
         .collect(MoreCollectors.toSet(components.size()));
       Set<String> authorizedProjectUuids = dbClient.authorizationDao().keepAuthorizedProjectUuids(dbSession, projectUuids, getUserId(), permission);
 
       return components.stream()
-        .filter(c -> authorizedProjectUuids.contains(c.projectUuid()))
+        .filter(c -> authorizedProjectUuids.contains(c.projectUuid()) || authorizedProjectUuids.contains(c.getMainBranchProjectUuid()))
         .collect(MoreCollectors.toList(components.size()));
     }
   }
